@@ -180,3 +180,11 @@ Playonlinux
 - **调整设置**：在 PlayOnLinux 中，您可以调整各种设置，比如分配的内存、显示设置等。
 
 通过遵循这些步骤，您应该能够在 Ubuntu 上使用 PlayOnLinux 来安装和运行 Windows 程序。如果遇到问题，请检查相关的在线论坛或文档，因为不同的程序可能需要特定的配置。
+
+## 使用Wine下载Keil5
+
+## 获取Keil5的安装包和注册机（与windows下步骤相同）
+
+## 导入芯片包
+
+## 无法烧录程序，需要另外的软件 STM32CubeProgrammer
