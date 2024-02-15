@@ -183,8 +183,8 @@ Playonlinux
 
 ## 使用Wine下载Keil5
 
-## 获取Keil5的安装包和注册机（与windows下步骤相同）
+### 获取Keil5的安装包和注册机（与windows下步骤相同）
 
-## 导入芯片包
+### 导入芯片包
 
-## 无法烧录程序，需要另外的软件 STM32CubeProgrammer
+### 无法烧录程序，需要另外的软件 STM32CubeProgrammer
