@@ -1,5 +1,11 @@
 # ROS Launch文件
 
+## 小结
+
+- 使用launch文件，可以通过roslaunch指令一次启动多个节点
+- 在launch文件中，为节点添加output=“screen”属性，可以让节点信息输出在终端中。（ROS_WARN不受该属性影响）
+- 在launch文件中，为节点添加launch-prefix=“gnome-terminal -e”属性，可以让节点单独运行在一个独立终端中
+
 ## Launch
 
 在ROS（Robot Operating System）中，`launch`文件是用来定义和配置一组要同时启动的节点的XML文件。这些文件极大地简化了管理和启动复杂的ROS系统。通过使用`launch`文件，你可以一次性启动多个节点，设置它们的参数，重新映射话题名称等。
@@ -128,6 +134,10 @@ roslaunch beginner_tutorials example.launch
 
 ### 1. 节点类型指定
 
+>C++节点是编译后的二进制文件，不带.cpp后缀
+>
+>python节点是直接运行的代码文件，需要写上.py后缀
+
 - **C++ 节点**：
   - 在C++中，节点是由源代码编译成可执行文件的。在`launch`文件中，`type`属性需要与你的可执行文件名匹配（不包括任何路径或扩展名）。
 
@@ -207,3 +217,44 @@ roslaunch beginner_tutorials example.launch
 ### 总结
 
 `output`属性在`.launch`文件中的`<node>`标签内用于控制节点的输出信息的去向。根据不同的需求，你可以选择将输出信息直接显示在屏幕上，便于实时监控和调试，或者将输出信息记录到日志文件中，适用于长期运行或后台运行的情况。通过合理使用这个属性，可以更有效地管理和查看节点的输出信息。
+
+## 配置节点的输出使其显示在一个独立的终端窗口中
+
+在ROS（Robot Operating System）的`.launch`文件中，`launch-prefix="gnome-terminal -e"`用于在新的`gnome-terminal`窗口中启动ROS节点。这个设置非常有用，尤其是当你想要单独监控特定节点的输出时。
+
+### `launch-prefix="gnome-terminal -e"`的作用
+
+1. **新终端窗口**：这个命令会打开一个新的`gnome-terminal`终端窗口。
+
+2. **执行命令**：`-e`选项后跟的命令会在新打开的`gnome-terminal`窗口中执行。在ROS的上下文中，这通常是启动特定节点的命令。
+
+### 示例
+
+假设你有一个名为`talker`的节点，你想在单独的`gnome-terminal`窗口中启动它并查看其输出。你可以在`.launch`文件中使用以下配置：
+
+```xml
+<launch>
+    <node pkg="beginner_tutorials" type="talker" name="talker_node" output="screen"
+          launch-prefix="gnome-terminal -e"/>
+</launch>
+```
+
+在这个例子中：
+
+- `pkg="beginner_tutorials"` 指定节点所在的ROS包。
+- `type="talker"` 是节点的可执行文件名。
+- `name="talker_node"` 是节点运行时的名称。
+- `output="screen"` 确保节点的输出显示在屏幕上。
+- `launch-prefix="gnome-terminal -e"` 用于在新的`gnome-terminal`窗口中启动节点。这里，`-e`后面的节点启动命令会被自动填充。
+
+### 注意事项
+
+- **终端模拟器**：这种方法假定你的系统已经安装了`gnome-terminal`。如果你使用的是不同的操作系统或终端模拟器，可能需要相应地调整命令。
+
+- **命令格式**：确保正确地使用`-e`选项。一些新版本的`gnome-terminal`可能要求使用`--`来分隔选项和要执行的命令。
+
+- **环境变量**：在新打开的终端窗口中，确保所有必要的ROS环境变量已经设置。有时，你可能需要在`launch-prefix`中包含环境设置命令，例如`source /opt/ros/noetic/setup.bash`。
+
+### 总结
+
+使用`launch-prefix="gnome-terminal -e"`是在独立的终端窗口中运行ROS节点的有效方法，这在进行ROS系统的开发和调试时尤其有用。通过这种方式，你可以为每个节点创建一个单独的窗口，从而更好地管理和观察它们的输出和行为。
