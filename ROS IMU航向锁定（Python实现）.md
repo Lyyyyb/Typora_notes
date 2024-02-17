@@ -11,64 +11,58 @@
 
 ## 代码示例
 
-在ROS（Robot Operating System）中实现IMU航向锁定的程序时，确实，通常情况下，用于发布速度控制命令的发布器（publisher）应该是一个全局变量。这样做的原因是：
+要使用Python实现IMU航向锁定的功能，你可以按照以下步骤来创建一个ROS节点。这个节点将订阅IMU数据，并根据当前的偏航角和目标朝向角来控制机器人的转向。以下是实现这一功能的基本框架：
 
-1. **可访问性**：将发布器设为全局变量使得在程序的任何部分都可以访问并使用它来发布消息。
-
-2. **效率**：避免在每次需要发布消息时重复创建发布器，这可以提高程序的运行效率。
-
-3. **回调函数中的使用**：在ROS中，回调函数经常用于处理订阅的消息。如果发布器是局部变量，它将无法在回调函数中直接使用。
-
-下面是使用Python实现IMU航向锁定的一个简单例子，其中包含了一个全局发布器：
+### 1. 导入必要的库
 
 ```python
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 from sensor_msgs.msg import Imu
-from geometry_msgs.msg import Twist
 import tf.transformations as tf_trans
+from geometry_msgs.msg import Twist
+import math
+```
 
-# 全局发布器
-cmd_vel_pub = None
+### 2. 设置IMU数据的回调函数
 
-def imu_callback(data):
-    global cmd_vel_pub
+在回调函数中，你需要将IMU数据中的四元数转换成欧拉角，然后根据偏航角来调整机器人的转向：
 
-    # 确保IMU数据有效
-    if data.orientation_covariance[0] == -1:
-        return
-
-    # 转换四元数到欧拉角
+```python
+def imu_callback(imu_data):
     quaternion = (
-        data.orientation.x,
-        data.orientation.y,
-        data.orientation.z,
-        data.orientation.w
+        imu_data.orientation.x,
+        imu_data.orientation.y,
+        imu_data.orientation.z,
+        imu_data.orientation.w
     )
-    euler = tf_trans.euler_from_quaternion(quaternion)
+    roll, pitch, yaw = tf_trans.euler_from_quaternion(quaternion)
 
-    # 假设目标朝向角为某个固定值（例如0度）
-    target_yaw = 0
+    target_yaw = 0  # 设置目标朝向角度
+    yaw_degree = yaw * 180 / math.pi  # 将弧度转换为度
 
-    # 控制逻辑
+    # 计算当前朝向与目标朝向的角度差
+    error_yaw = target_yaw - yaw_degree
+
+    # 创建Twist消息
     twist = Twist()
-    # 根据当前朝向和目标朝向调整角速度
-    if euler[2] < target_yaw:
-        twist.angular.z = 0.5
-    else:
-        twist.angular.z = -0.5
+    twist.angular.z = error_yaw * 0.01  # 一个简单的比例控制器
 
-    # 发布速度控制指令
+    # 发布Twist消息以调整机器人朝向
     cmd_vel_pub.publish(twist)
+```
 
+### 3. 主函数和节点初始化
+
+在主函数中，初始化ROS节点，创建发布器和订阅器：
+
+```python
 def main():
     global cmd_vel_pub
-
     rospy.init_node('imu_heading_lock')
 
     cmd_vel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
-
-    rospy.Subscriber("/imu/data", Imu, imu_callback)
+    rospy.Subscriber('/imu/data', Imu, imu_callback)
 
     rospy.spin()
 
@@ -76,4 +70,11 @@ if __name__ == '__main__':
     main()
 ```
 
-在这个例子中，`cmd_vel_pub`被定义为全局变量，并在`main()`函数中初始化。然后，它在`imu_callback`函数中被用来发布速度控制命令。这种结构确保了发布器可以在整个程序中被访问和使用。
+### 注意事项
+
+- `target_yaw`是你希望机器人达到的目标偏航角度。
+- 这里使用的是非常简单的比例控制器，`error_yaw * 0.01`用于计算转速。根据你的机器人和应用场景，可能需要调整比例因子。
+- 确保IMU数据的话题和cmd_vel的话题名称与你的ROS环境相匹配。
+- 需要确保IMU数据的准确性和可靠性。
+
+此代码提供了一个基本的框架，可根据具体的机器人和应用需求进行调整和优化。
