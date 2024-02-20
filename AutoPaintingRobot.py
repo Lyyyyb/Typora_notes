@@ -42,17 +42,28 @@ class AutoPaintingRobot:
         self.listener = tf.TransformListener()
         #初始化雷达数据
         self.lidar_data = None
-        
+        #初始化串口
+        self.serial_port = None
+
     # 激光雷达数据的回调函数
     def lidar_callback(self, data):
         # 更新激光雷达数据
         self.lidar_data = data
         # 处理激光雷达数据以便找到树木的位置
         self.target_tree_position = self.detect_tree_from_lidar(data)
+    
 
-    # 解析激光雷达数据以找到树木，需在子类中具体实现
+    # 解析激光雷达数据以找到树木，
     def detect_tree_from_lidar(self, data):
-        raise NotImplementedError("Must be implemented in subclass")
+        # 假设 data 提供了直接的 X, Y, Z 坐标信息
+        # 这里是一个简化的示例，具体实现应根据实际数据格式进行
+        x = data.x_coordinate  # 从 data 中获取 X 坐标
+        y = data.y_coordinate  # 从 data 中获取 Y 坐标
+        z = data.z_coordinate  # 从 data 中获取 Z 坐标
+
+        # 将坐标赋值给 position
+        position = (x, y, z)
+        return position
 
     # 生成串口指令，需在子类中具体实现
     def create_serial_command(self, command):
@@ -77,10 +88,6 @@ class AutoPaintingRobot:
             # - 将错误状态发送到一个监控系统
             # - 如果错误频繁发生，可以采取降级策略，比如减少读取频率等
         return "ERROR"
-
-    #计算旋转角度，需在子类中具体实现
-    def calculate_turn_angle(self, tree_position):
-        raise NotImplementedError("Must be implemented in subclass")
     
         # 发布TF变换
     def publish_transforms(self):
@@ -128,17 +135,6 @@ class TrackVehicle(AutoPaintingRobot):
         self.current_position = None
         self.current_orientation = None
         self.target_tree_position = None
-        
-    def detect_tree_from_lidar(self, data):
-        # 假设 data 提供了直接的 X, Y, Z 坐标信息
-        # 这里是一个简化的示例，具体实现应根据实际数据格式进行
-        x = data.x_coordinate  # 从 data 中获取 X 坐标
-        y = data.y_coordinate  # 从 data 中获取 Y 坐标
-        z = data.z_coordinate  # 从 data 中获取 Z 坐标
-
-        # 将坐标赋值给 position
-        position = (x, y, z)
-        return position
     
     # IMU数据回调函数
     def imu_callback(self, data):
@@ -153,25 +149,15 @@ class TrackVehicle(AutoPaintingRobot):
         quaternion = [data.orientation.x, data.orientation.y, data.orientation.z, data.orientation.w]
         euler = tf.transformations.euler_from_quaternion(quaternion)
         return euler
-
-    # 创建控制履带车的串口指令
-    def create_serial_command(self, command):
-        return "Vehicle " + command
-
-    # 发送控制履带车的串口指令
-    def send_serial_command(self, command):
-        try:
-            self.serial_port.write(command.encode())
-        except serial.SerialException as e:
-            rospy.logerr("Track vehicle serial communication error: %s", e)
-
+    
     def calculate_turn_angle(self, tree_position, current_orientation):
         # 假设current_orientation为机器人朝向的欧拉角
         # 计算机器人当前朝向与树木之间的角度差
         angle_to_tree = math.atan2(tree_position.y, tree_position.x)
         turn_angle = angle_to_tree - current_orientation.yaw
         return turn_angle 
-    
+
+
     def convert_to_spray_claw_frame(self, tree_position, listener):
         try:
             # 等待坐标系的转换关系
@@ -187,6 +173,20 @@ class TrackVehicle(AutoPaintingRobot):
         # 假设计算得到的距离是机器人与树木之间的直线距离
         movement_distance = math.sqrt(tree_position_spray_claw_frame.point.x ** 2 + tree_position_spray_claw_frame.point.y ** 2)
         return movement_distance
+    
+
+    # 创建控制履带车的串口指令
+    def create_serial_command(self, command):
+        return "Vehicle " + command
+
+    # 发送控制履带车的串口指令
+    def send_serial_command(self, command):
+        try:
+            self.serial_port.write(command.encode())
+        except serial.SerialException as e:
+            rospy.logerr("Track vehicle serial communication error: %s", e)
+    
+
 
     # 实现具体的喷涂树木逻辑
     def spray_tree(self):
@@ -198,6 +198,8 @@ class TrackVehicle(AutoPaintingRobot):
                 使用三维雷达获取树的坐标及距离，IMU获取履带车的朝向计算出车要转动的角度，
                 转换成控制指令，通过串口发送给下位机，调整车的朝向，并且需要考虑履带车和Y轴直线模组的长度，
                 保证其在履带车转动过程中不会撞到树。
+
+                调整车的朝向，正对树
                 """
                 # 获取树的位置
                 tree_position = self.detect_tree_from_lidar(self.lidar_data)  # 假设lidar_data是已获取的数据
@@ -287,7 +289,8 @@ class LinearModule(AutoPaintingRobot):
             self.serial_port.write(command.encode())
         except serial.SerialException as e:
             rospy.logerr("Linear module serial communication error: %s", e)
-    
+
+
     def convert_to_module_frame(self, tree_position, listener):
         # 假设listener是一个tf.TransformListener对象
         try:
