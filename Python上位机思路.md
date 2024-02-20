@@ -9,7 +9,7 @@
 - 调整车的朝向后，使用三维雷达获取树的坐标，通过TF坐标转换成相对于X轴直线模组最左侧的坐标，通过坐标信息计算出X轴直线模组的滑台需要移动多少距离，进而得到X轴直线模组的步进电机需要运动的步数，转换成控制指令，通过串口发送给下位机。
 - 控制Y轴直线模组末端的喷爪张开，使用三维雷达获取树的坐标及距离，通过TF坐标转换成相对于喷爪末端的坐标和距离，计算出车要移动的距离，转换成控制指令，通过串口发送给下位机，喷爪闭合。
 - 控制水泵喷漆，控制Z轴直线模组的滑台，使Y轴直线模组上下移动对树均匀喷漆。
-- 喷漆结束，喷爪张开，使车后退和时距离，喷爪闭合，继续开始导航。
+- 喷漆结束，喷爪张开，使车后退合适距离，喷爪闭合，继续开始导航。
 
 ## 代码框架
 
@@ -619,79 +619,41 @@ class RobotState:
     NAVIGATING = 1
     SPRAYING = 2
 
-# 父类：AutoPaintingRobot
 class AutoPaintingRobot:
     def __init__(self):
+        # 初始化ROS节点
         rospy.init_node('auto_painting_robot')
+
+        # 订阅激光雷达、IMU和GPS数据的话题
         self.lidar_sub = rospy.Subscriber('/lidar', LaserScan, self.lidar_callback)
+        self.imu_sub = rospy.Subscriber('/imu', Imu, self.imu_callback)
+
+        # 通过串口进行通信
+        self.serial_port = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+
+        # 初始化TF广播器
+        self.tf_broadcaster = tf.TransformBroadcaster()
+
+        # 初始化存储当前位置、朝向和目标位置的变量
+        self.current_position = None
+        self.current_orientation = None
+        self.target_tree_position = None
+
+        # 设置初始状态为 NAVIGATING
+        self.state = RobotState.NAVIGATING
+    
+    def navigate_to_tree(self):
+        # 导航逻辑
+        # ...
+        # 假设导航完成，切换到喷树状态
+        self.state = RobotState.SPRAYING
+
+    def spray_tree(self):
+        # 喷树逻辑
+        # ...
+        # 假设喷树完成，切换回导航状态
         self.state = RobotState.NAVIGATING
 
-    def lidar_callback(self, data):
-        self.target_tree_position = self.detect_tree_from_lidar(data)
-
-    def detect_tree_from_lidar(self, data):
-        distance_threshold = 3.0
-        closest_distance = float('inf')
-        closest_angle = None
-        for angle in range(len(data.ranges)):
-            distance = data.ranges[angle]
-            if distance < closest_distance:
-                closest_distance = distance
-                closest_angle = angle
-        if closest_distance < distance_threshold:
-            return (closest_distance, closest_angle)
-        else:
-            return None
-
-    def create_serial_command(self, command):
-        raise NotImplementedError("Must be implemented in subclass")
-
-    def send_serial_command(self, command):
-        raise NotImplementedError("Must be implemented in subclass")
-
-    def switch_navigation_state(self):
-        if self.state == RobotState.NAVIGATING:
-            self.navigate_to_tree()
-        elif self.state == RobotState.SPRAYING:
-            self.spray_tree()
-
-    def calculate_distance_to_tree(self, tree_position):
-        # ...原有的距离计算逻辑...
-
-# 子类：TrackVehicle
-class TrackVehicle(AutoPaintingRobot):
-    def __init__(self):
-        super().__init__()
-        self.imu_sub = rospy.Subscriber('/imu', Imu, self.imu_callback)
-        self.serial_port = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
-
-    def imu_callback(self, data):
-        self.current_orientation = self.get_orientation_from_imu(data)
-
-    def get_orientation_from_imu(self, data):
-        quaternion = [data.orientation.x, data.orientation.y, data.orientation.z, data.orientation.w]
-        euler = tf.transformations.euler_from_quaternion(quaternion)
-        return euler
-
-    def create_serial_command(self, command):
-        return "Vehicle " + command
-
-    def send_serial_command(self, command):
-        try:
-            self.serial_port.write(command.encode())
-        except serial.SerialException as e:
-            rospy.logerr("Track vehicle serial communication error: %s", e)
-
-    def calculate_turn_angle(self, tree_position):
-        # ...原有的角度计算逻辑...
-
-# 子类：LinearModule
-class LinearModule(AutoPaintingRobot):
-    def __init__(self):
-        super().__init__()
-        self.tf_broadcaster = tf.TransformBroadcaster()
-        self.serial_port = serial.Serial('/dev/ttyUSB1', 9600, timeout=1)
-
     def publish_transforms(self):
         current_time = rospy.Time.now()
         self.send_transform(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, current_time, "/lidar_frame", "/module_frame")
@@ -700,22 +662,175 @@ class LinearModule(AutoPaintingRobot):
     def send_transform(self, tx, ty, tz, rx, ry, rz, rw, time, parent_frame, child_frame):
         self.tf_broadcaster.sendTransform((tx, ty, tz), (rx, ry, rz, rw), time, child_frame, parent_frame)
 
-    def create_serial_command(self, command):
-        return "Module " + command
 
-    def send_serial_command(self, command):
+    def lidar_callback(self, data):
+        # 激光雷达数据处理
+        # 检测并更新树木的位置
+        self.target_tree_position = self.detect_tree_from_lidar(data)
+
+    def detect_tree_from_lidar(self, data):
+        # 解析激光雷达数据来找到树木的位置
+        # 返回树木的位置
+        # 假设阈值为某个固定距离
+        distance_threshold = 3.0  # 3米，需要根据实际情况调整
+        closest_distance = float('inf')
+        closest_angle = None
+
+        # 检查激光雷达数据中的每个点
+        for angle in range(len(data.ranges)):
+            distance = data.ranges[angle]
+            if distance < closest_distance:
+                closest_distance = distance
+                closest_angle = angle
+
+        # 如果找到距离较近的物体，则假设它是树木
+        if closest_distance < distance_threshold:
+            tree_position = (closest_distance, closest_angle)
+        else:
+            tree_position = None
+
+        return tree_position
+
+    def imu_callback(self, data):
+        # IMU数据处理
+        # 更新当前朝向信息
+        self.current_orientation = self.get_orientation_from_imu(data)
+
+    def get_orientation_from_imu(self, data):
+        # 解析IMU数据来获取朝向
+        quaternion = [data.orientation.x, data.orientation.y, data.orientation.z, data.orientation.w]
+        euler = tf.transformations.euler_from_quaternion(quaternion)
+        return euler  # 返回欧拉角
+    
+    def calculate_turn_angle(self, tree_position, current_orientation):
+        # 假设current_orientation为机器人朝向的欧拉角
+        # 计算机器人当前朝向与树木之间的角度差
+        angle_to_tree = math.atan2(tree_position.y, tree_position.x)
+        turn_angle = angle_to_tree - current_orientation.yaw
+        return turn_angle    
+
+    def create_turn_command_car(self, turn_angle):
+        # 创建控制指令
+        command = "TURN " + str(turn_angle)
+        return command
+    
+    def create_turn_command_moudle(self, turn_angle):
+        # 创建控制指令
+        command = "TURN " + str(turn_angle)
+        return command
+    
+    def send_command_to_base_car(self, command):
         try:
             self.serial_port.write(command.encode())
         except serial.SerialException as e:
-            rospy.logerr("Linear module serial communication error: %s", e)
+            rospy.logerr("Serial communication error: %s", e)
 
-# 主程序
+    def send_command_to_base_moudle(self, command):
+        # 通过串口发送指令到下位机
+        try:
+            self.serial_port.write(command.encode())
+        except serial.SerialException as e:
+            rospy.logerr("Serial communication error: %s", e)
+
+    def adjust_orientation_to_tree(self):
+        # 获取树的位置
+        tree_position = self.detect_tree_from_lidar(self.lidar_data)  # 假设lidar_data是已获取的数据
+
+        # 获取当前朝向
+        current_orientation = self.get_orientation_from_imu(self.imu_data)  # 假设imu_data是已获取的数据
+
+        # 计算转动角度
+        turn_angle = self.calculate_turn_angle(tree_position, current_orientation)
+
+        # 创建控制指令
+        turn_command = self.create_turn_command_car(turn_angle)
+
+        # 发送控制指令
+        self.send_command_to_base_car(turn_command)
+
+    def convert_to_module_frame(self, tree_position, listener):
+        # 假设listener是一个tf.TransformListener对象
+        try:
+            # 等待坐标系的转换关系
+            listener.waitForTransform("/module_frame", "C", rospy.Time(0), rospy.Duration(4.0))
+            # 进行坐标转换
+            tree_position_module_frame = listener.transformPoint("/module_frame", tree_position)
+            return tree_position_module_frame
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+            rospy.logerr("TF转换异常: %s", e)
+            return None
+        
+    def calculate_movement_for_module(self, tree_position_module_frame):
+        # 假设直线模组的起点为(0,0,0)，计算滑台需要移动的距离
+        movement_distance = tree_position_module_frame.point.x  # 根据实际情况可能需要调整
+        return movement_distance    
+        
+    def calculate_steps_for_motor(self, movement_distance, step_distance):
+        # 计算步进电机需要运动的步数
+        steps = int(movement_distance / step_distance)  # 可能需要进行取整操作
+        return steps 
+
+    # 在主循环或适当的函数中
+    def control_x_axis_module(self):
+        tree_position = self.get_tree_position_from_lidar(self.lidar_data)
+        tree_position_module_frame = self.convert_to_module_frame(tree_position, self.tf_listener)
+        if tree_position_module_frame is not None:
+            movement_distance = self.calculate_movement_for_module(tree_position_module_frame)
+            steps = self.calculate_steps_for_motor(movement_distance, STEP_DISTANCE)
+            self.send_motor_command(steps)
+
+    def open_spray_claw(self):
+    # 发送指令以张开喷爪
+        open_command = "OPEN_CLAW"
+        self.send_command_to_base(open_command)
+
+    def convert_to_spray_claw_frame(self, tree_position, listener):
+        try:
+            # 等待坐标系的转换关系
+            listener.waitForTransform("/spray_claw_frame", "/lidar_frame", rospy.Time(0), rospy.Duration(4.0))
+            # 进行坐标转换
+            tree_position_spray_claw_frame = listener.transformPoint("/spray_claw_frame", tree_position)
+            return tree_position_spray_claw_frame
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+            rospy.logerr("TF转换异常: %s", e)
+            return None
+        
+    def calculate_movement_for_spray(self, tree_position_spray_claw_frame):
+        # 假设计算得到的距离是机器人与树木之间的直线距离
+        movement_distance = math.sqrt(tree_position_spray_claw_frame.point.x ** 2 + tree_position_spray_claw_frame.point.y ** 2)
+        return movement_distance
+    
+    def close_spray_claw(self):
+        # 发送指令以闭合喷爪
+        close_command = "CLOSE_CLAW"
+        self.send_command_to_base(close_command)
+
+    def control_spray_process(self):
+        self.open_spray_claw()
+        tree_position = self.get_tree_position_from_lidar(self.lidar_data)
+        tree_position_spray_claw_frame = self.convert_to_spray_claw_frame(tree_position, self.tf_listener)
+        if tree_position_spray_claw_frame is not None:
+            movement_distance = self.calculate_movement_for
+
+
+    def run(self):
+        # 主循环
+        rate = rospy.Rate(10)  # 10 Hz
+        while not rospy.is_shutdown():
+            if self.state == RobotState.NAVIGATING:
+                self.navigate_to_tree()
+            elif self.state == RobotState.SPRAYING:
+                self.spray_tree()
+            self.publish_transforms() 
+            rate.sleep()
+
 if __name__ == '__main__':
-    vehicle = TrackVehicle()
-    module = LinearModule()
-    # 使用vehicle和module执行特定操作
-
+    robot = AutoPaintingRobot()
+    robot.run()
+ 
 ```
+
+
 
 ```python
 #!/usr/bin/env python3
@@ -726,110 +841,9 @@ import serial
 import math
 import tf
 
-
-# 父类：AutoPaintingRobot
-class AutoPaintingRobot:
-    def __init__(self):
-        rospy.init_node('auto_painting_robot')
-        self.lidar_sub = rospy.Subscriber('/lidar', LaserScan, self.lidar_callback)
-
-    def lidar_callback(self, data):
-        self.target_tree_position = self.detect_tree_from_lidar(data)
-
-    def detect_tree_from_lidar(self, data):
-        distance_threshold = 3.0
-        closest_distance = float('inf')
-        closest_angle = None
-        for angle in range(len(data.ranges)):
-            distance = data.ranges[angle]
-            if distance < closest_distance:
-                closest_distance = distance
-                closest_angle = angle
-        if closest_distance < distance_threshold:
-            return (closest_distance, closest_angle)
-        else:
-            return None
-
-    def create_serial_command(self, command):
-        raise NotImplementedError("Must be implemented in subclass")
-
-    def send_serial_command(self, command):
-        raise NotImplementedError("Must be implemented in subclass")
-
-    def calculate_distance_to_tree(self, tree_position):
-        # ...原有的距离计算逻辑...
-
-# 子类：TrackVehicle
-class TrackVehicle(AutoPaintingRobot):
-    def __init__(self):
-        super().__init__()
-        self.imu_sub = rospy.Subscriber('/imu', Imu, self.imu_callback)
-        self.serial_port = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
-
-    def imu_callback(self, data):
-        self.current_orientation = self.get_orientation_from_imu(data)
-
-    def get_orientation_from_imu(self, data):
-        quaternion = [data.orientation.x, data.orientation.y, data.orientation.z, data.orientation.w]
-        euler = tf.transformations.euler_from_quaternion(quaternion)
-        return euler
-
-    def create_serial_command(self, command):
-        return "Vehicle " + command
-
-    def send_serial_command(self, command):
-        try:
-            self.serial_port.write(command.encode())
-        except serial.SerialException as e:
-            rospy.logerr("Track vehicle serial communication error: %s", e)
-
-    def calculate_turn_angle(self, tree_position):
-        # ...原有的角度计算逻辑...
-
-# 子类：LinearModule
-class LinearModule(AutoPaintingRobot):
-    def __init__(self):
-        super().__init__()
-        self.tf_broadcaster = tf.TransformBroadcaster()
-        self.serial_port = serial.Serial('/dev/ttyUSB1', 9600, timeout=1)
-
-    def publish_transforms(self):
-        current_time = rospy.Time.now()
-        self.send_transform(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, current_time, "/lidar_frame", "/module_frame")
-        self.send_transform(0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, current_time, "/lidar_frame", "/spray_claw_frame")
-
-    def send_transform(self, tx, ty, tz, rx, ry, rz, rw, time, parent_frame, child_frame):
-        self.tf_broadcaster.sendTransform((tx, ty, tz), (rx, ry, rz, rw), time, child_frame, parent_frame)
-
-    def create_serial_command(self, command):
-        return "Module " + command
-
-    def send_serial_command(self, command):
-        try:
-            self.serial_port.write(command.encode())
-        except serial.SerialException as e:
-            rospy.logerr("Linear module serial communication error: %s", e)
-
-# 主程序
-if __name__ == '__main__':
-    vehicle = TrackVehicle()
-    module = LinearModule()
-    # 使用vehicle和module执行特定操作
-    rate = rospy.Rate(10)  # 10 Hz
-    while not rospy.is_shutdown():
-        module.publish_transforms()
-        rate.sleep()
-
-```
-
-```python
-#!/usr/bin/env python3
-import rospy
-from sensor_msgs.msg import Imu, NavSatFix, LaserScan
-from geometry_msgs.msg import Twist
-import serial
-import math
-import tf
+class RobotState:
+    NAVIGATING = 1
+    SPRAYING = 2
 
 # 父类：AutoPaintingRobot
 class AutoPaintingRobot:
@@ -870,9 +884,30 @@ class AutoPaintingRobot:
     def send_serial_command(self, command):
         raise NotImplementedError("Must be implemented in subclass")
     
+    def read_serial_data(self):
+        # 从串口读取数据
+        try:
+            if self.serial_port.in_waiting > 0:
+                return self.serial_port.readline().decode().strip()
+        except serial.SerialException as e:
+                rospy.logerr("Error reading serial data: %s", e)
+                return None
+    
     def calculate_turn_angle(self, tree_position):
-    # ...原有的角度计算逻辑...
-    # 计算到树的距离（根据需要实现）
+        # ...原有的角度计算逻辑...
+        # 计算到树的距离（根据需要实现）
+
+    def navigate_to_tree(self):
+        # 导航逻辑
+        # ...
+        # 假设导航完成，切换到喷树状态
+        self.state = RobotState.SPRAYING
+
+    def spray_tree(self):
+        # 喷树逻辑
+        # ...
+        # 假设喷树完成，切换回导航状态
+        self.state = RobotState.NAVIGATING
 
 # 子类：TrackVehicle
 class TrackVehicle(AutoPaintingRobot):
@@ -971,3 +1006,20 @@ if __name__ == '__main__':
 
 ```
 
+spray_tree()一共分为7个步骤（并使用状态机编程思想）
+
+1.判断state是否等于1，若等于1，调整树的朝向，使车正对树木，并使state等于2
+
+2.判断state是否等于2，若等于2，调整X轴滑台，使其正对树木，并张开喷爪，并使state等于3
+
+3.判断state是否等于3，若等于3，使车前进合适距离，并使state等于4
+
+4.判断state是否等于4，若等于4，喷爪闭合，控制Z轴滑台，使Y轴丝杠上下运动，同时控制水泵喷水，喷涂结束，并使state等于5
+
+5.判断state是否等于5，若等于5，使车后退合适距离，并使state等于6
+
+6.判断state是否等于6，若等于6，喷爪闭合，并使state等于7
+
+7.判断state是否等于7，若等于7，导航开始，并使state等于1
+
+添加判断下位机通过串口传过来的电机结束运动标志位是否为OK
