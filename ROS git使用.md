@@ -224,3 +224,57 @@ git push origin <branch-name>
 - 在删除分支之前，请确保不再需要分支上的更改或已将这些更改合并到其他分支。
 - 远程分支操作通常涉及与其他团队成员的协作，因此在进行这些操作之前，最好与团队成员沟通。
 - 在执行远程操作之前，建议先执行 `git fetch` 来更新远程分支的状态。
+
+
+
+## 分支冲突
+
+要将 GitHub 上的远程仓库的 `main` 分支和 `master` 分支合并，并且最后只保留 `master` 分支，你可以按照以下步骤操作：
+
+1. **克隆仓库**（如果你还没有克隆）:
+   ```bash
+   git clone <your-repository-url>
+   cd <your-repository-directory>
+   ```
+
+2. **切换到 `main` 分支**:
+   ```bash
+   git checkout main
+   ```
+
+3. **拉取最新的 `main` 分支更改**（确保你拥有最新的提交）:
+   ```bash
+   git pull origin main
+   ```
+
+4. **合并 `main` 分支到 `master` 分支**:
+   首先切换到 `master` 分支：
+   ```bash
+   git checkout master
+   ```
+   然后合并 `main` 到 `master`：
+   ```bash
+   git merge main
+   ```
+
+5. **处理可能出现的合并冲突**:
+   如果出现合并冲突，你需要手动解决这些冲突。解决后，使用 `git add` 将解决后的文件标记为已解决，然后继续合并。
+
+6. **推送合并更改到远程 `master` 分支**:
+   ```bash
+   git push origin master
+   ```
+
+7. **删除本地的 `main` 分支**（如果你希望删除它）:
+   ```bash
+   git branch -d main
+   ```
+
+8. **删除远程的 `main` 分支**:
+   ```bash
+   git push origin --delete main
+   ```
+
+在这个过程中，你首先确保 `main` 分支上的所有更改都被合并到 `master` 分支。然后，你可以选择性地删除 `main` 分支，无论是在本地还是在远程仓库。
+
+**注意**：在合并和删除分支之前，请确保备份你的仓库以防意外发生。如果你对 Git 不是非常熟悉，建议在进行这些操作之前查看具体的文档或求助于有经验的开发者。
