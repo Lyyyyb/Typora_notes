@@ -331,3 +331,83 @@ git push origin <branch-name>
    - 如果您觉得 `git filter-branch` 太复杂，可以考虑使用 `BFG Repo-Cleaner`，这是一个简化的工具，专门用于从 Git 仓库中移除大文件或敏感数据。
 
 完成这些步骤后，您的仓库应该不再包含过大的文件，可以正常推送到 GitHub。
+
+## 不必要的文件夹
+
+如果您不需要 `build` 和 `devel` 文件夹，并且只想保留 `src` 文件夹，在 GitHub 远程仓库中删除这些文件夹的步骤如下：
+
+1. **删除本地文件夹**:
+   首先在本地仓库中删除 `build` 和 `devel` 文件夹。使用命令行，您可以这样做：
+
+   ```bash
+   git rm -r --cached build devel
+   ```
+   这个命令将 `build` 和 `devel` 文件夹从 Git 的暂存区中移除，但不会从您的文件系统中删除它们。
+
+2. **提交更改**:
+   接下来，您需要提交这些更改。使用以下命令：
+
+   ```bash
+   git commit -m "Remove build and devel folders"
+   ```
+   这会创建一个新的提交，记录了删除这两个文件夹的操作。
+
+3. **推送到远程仓库**:
+   然后，将这些更改推送到远程仓库：
+
+   ```bash
+   git push origin main
+   ```
+   根据您的分支名称，可能需要替换 `main`。例如，如果您的主分支是 `master`，则应使用 `git push origin master`。
+
+4. **更新 .gitignore**:
+   为了防止将来这些文件夹再次被错误地上传，您应该在 `.gitignore` 文件中添加这两个文件夹的路径。只需将它们的名字添加到 `.gitignore` 文件中即可。
+
+5. **确认更改**:
+   完成以上步骤后，在 GitHub 仓库中检查以确认这两个文件夹是否已被成功移除。
+
+这将确保 `build` 和 `devel` 文件夹从您的远程仓库中移除，并且未来不会再被错误地上传。
+
+
+
+更新 `.gitignore` 文件是一个简单的过程，可以通过以下步骤完成：
+
+1. **打开 `.gitignore` 文件**:
+   首先，您需要在文本编辑器中打开项目根目录下的 `.gitignore` 文件。如果该文件不存在，您可以创建一个。
+
+2. **添加规则**:
+   在 `.gitignore` 文件中，添加您想要 Git 忽略的文件或文件夹。在您的情况下，您想要 Git 忽略 `build` 和 `devel` 文件夹。将以下行添加到文件中：
+
+   ```
+   build/
+   devel/
+   ```
+
+   这告诉 Git 忽略 `build` 和 `devel` 文件夹及其所有内容。
+
+3. **保存更改**:
+   保存 `.gitignore` 文件。
+
+4. **提交更改到仓库**:
+   接下来，您需要将这些更改提交到您的 Git 仓库。首先，添加更改到暂存区：
+
+   ```bash
+   git add .gitignore
+   ```
+
+   然后，提交这些更改：
+
+   ```bash
+   git commit -m "Update .gitignore to exclude build and devel directories"
+   ```
+
+5. **推送到远程仓库**:
+   最后，将这些更改推送到您的远程仓库：
+
+   ```bash
+   git push origin main
+   ```
+
+   如前所述，根据您的主分支名称，可能需要替换 `main`。
+
+完成这些步骤后，`build` 和 `devel` 文件夹将被 Git 忽略，不会再被添加到您的仓库中。这也有助于防止未来这些文件夹被错误上传。
