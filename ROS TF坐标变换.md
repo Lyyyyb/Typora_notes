@@ -168,3 +168,53 @@ if __name__ == '__main__':
 5. **设置位置和旋转**：根据需要更新末端执行器的位置和方向。这里以简单的圆形运动为例。
 
 在这个例子中，动态变换持续更新，表示末端执行器相对于机器人基座的位置和方向的改变。这对于实时跟踪和控制机器人的动态部件非常有用。
+
+## 坐标msg消息
+
+在ROS（Robot Operating System）中，TF（Transform）库用于处理不同坐标系之间的空间关系。TF库主要使用一种特殊的消息类型来广播和接收坐标系之间的变换信息，这种消息类型就是`TransformStamped`消息，它是`geometry_msgs/TransformStamped`类型的消息。
+
+### TransformStamped消息
+
+`TransformStamped`消息包含了描述从一个坐标系到另一个坐标系变换的所有必要信息。这个消息包括以下几个关键部分：
+
+1. **header**：这部分包含标准的ROS消息头信息，主要是时间戳和参考坐标系（`frame_id`）。时间戳指明了变换信息的时间，而`frame_id`指明了父坐标系（即变换的参考坐标系）。
+
+2. **child_frame_id**：这是一个字符串，指明了子坐标系的名称。这意味着变换描述了如何从父坐标系（在header中指定）到这个子坐标系进行转换。
+
+3. **transform**：这是实际的变换数据，包括平移（translation）和旋转（rotation）。
+    - **translation**：表示从父坐标系到子坐标系的线性位移，包括x、y、z三个方向上的位移值。
+    - **rotation**：表示从父坐标系到子坐标系的旋转，通常通过四元数（x, y, z, w）来表示。
+
+### 示例
+
+下面是一个`TransformStamped`消息的示例：
+
+```python
+import geometry_msgs.msg
+
+transform = geometry_msgs.msg.TransformStamped()
+transform.header.stamp = rospy.Time.now()
+transform.header.frame_id = "world"
+transform.child_frame_id = "base_link"
+
+transform.transform.translation.x = 1.0
+transform.transform.translation.y = 0.0
+transform.transform.translation.z = 0.5
+
+transform.transform.rotation.x = 0.0
+transform.transform.rotation.y = 0.0
+transform.transform.rotation.z = 0.0
+transform.transform.rotation.w = 1.0
+```
+
+在这个示例中，消息描述了一个从“world”坐标系到“base_link”坐标系的变换。变换包含了一定的平移（x方向1.0m，z方向0.5m）和一个没有旋转的四元数。
+
+### 用途
+
+`TransformStamped`消息通常用于两种情况：
+
+1. **广播变换**：当一个节点（例如，机器人的某个部分或一个传感器）需要告知其他部分它的位置和方向时，它会创建并发送`TransformStamped`消息。
+
+2. **查询变换**：当一个节点需要知道另一个节点的位置和方向时，它可以查询TF树以获取相应的`TransformStamped`消息。
+
+通过这种方式，ROS中的不同组件可以共享和理解彼此在空间中的位置和方向，这对于协调复杂的机器人行为和传感器数据集成至关重要。
