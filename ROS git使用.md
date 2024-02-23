@@ -368,7 +368,7 @@ git push origin <branch-name>
 
 这将确保 `build` 和 `devel` 文件夹从您的远程仓库中移除，并且未来不会再被错误地上传。
 
-
+## .gitgnore
 
 更新 `.gitignore` 文件是一个简单的过程，可以通过以下步骤完成：
 
@@ -411,3 +411,40 @@ git push origin <branch-name>
    如前所述，根据您的主分支名称，可能需要替换 `main`。
 
 完成这些步骤后，`build` 和 `devel` 文件夹将被 Git 忽略，不会再被添加到您的仓库中。这也有助于防止未来这些文件夹被错误上传。
+
+
+
+如果你在项目中找不到 `.gitignore` 文件，可能是因为这个文件尚未被创建。`.gitignore` 文件是一个用来指定 Git 忽略跟踪的文件和文件夹的特殊文件。你可以手动创建这个文件，并在其中指定你想要 Git 忽略的文件或文件夹。以下是创建和配置 `.gitignore` 文件的步骤：
+
+1. **创建 `.gitignore` 文件**：
+   打开命令行或终端，在你的 Git 仓库的根目录下运行以下命令来创建一个 `.gitignore` 文件：
+   ```bash
+   touch .gitignore
+   ```
+
+2. **编辑 `.gitignore` 文件**：
+   使用文本编辑器打开 `.gitignore` 文件，并添加你想要 Git 忽略的文件或文件夹的路径。例如，如果你想要 Git 忽略 `build` 和 `devel` 文件夹，你可以在 `.gitignore` 文件中添加以下内容：
+   ```
+   build/
+   devel/
+   ```
+
+3. **将 `.gitignore` 文件添加到 Git**：
+   在创建和编辑完 `.gitignore` 文件后，你需要将它添加到仓库中。使用以下命令：
+   ```bash
+   git add .gitignore
+   git commit -m "Add .gitignore file"
+   ```
+
+4. **从仓库中移除已经跟踪的不需要的文件夹**：
+   由于 `build` 和 `devel` 文件夹已经被上传到了远程仓库，你需要从 Git 的跟踪中移除它们，但保留它们在本地的副本。使用以下命令：
+   ```bash
+   git rm -r --cached build
+   git rm -r --cached devel
+   git commit -m "Remove build and devel folders from tracking"
+   ```
+
+5. **推送更改到远程仓库**：
+   最后，使用 `git push` 命令将这些更改推送到远程仓库。
+
+注意，`.gitignore` 文件是对大小写敏感的，确保文件名和路径的正确性。此外，你可能需要根据你的项目需求调整 `.gitignore` 文件中的内容。
