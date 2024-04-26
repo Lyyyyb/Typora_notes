@@ -4,7 +4,7 @@
 
 ### 创建 ROS 项目和初始化 Git 仓库
 
-1. 要整合之前讨论的内容，这里是使用 Git 和 Visual Studio Code (VSCode) 来管理一个 ROS 项目的完整指南，包括创建项目、初始化 Git 仓库、更改本地默认分支为 `main`，以及将代码推送到远程仓库的步骤：
+1. 这里是使用 Git 和 Visual Studio Code (VSCode) 来管理一个 ROS 项目的完整指南，包括创建项目、初始化 Git 仓库、更改本地默认分支为 `main`，以及将代码推送到远程仓库的步骤：
    
    ### 创建 ROS 项目
    
