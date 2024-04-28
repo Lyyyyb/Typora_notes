@@ -340,3 +340,144 @@ if __name__ == '__main__':
 
 ```
 
+这段代码已经完成了基本的功能，但还有一些地方可以改进：
+
+1. **Magic Numbers**: 魔法数值（如0.1，0.5，32767等）在代码中直接使用，不易理解。可以使用常量或者宏定义来提高代码可读性。
+
+2. **硬编码的CAN消息格式**: 目前CAN消息的格式直接硬编码在代码中，如果需要修改格式或添加更多的控制参数，需要修改代码。可以考虑将CAN消息的格式定义为配置文件或者参数，以便灵活地调整。
+
+3. **错误处理**: 目前代码中没有对异常情况进行处理，比如ROS节点初始化失败、订阅者或发布者创建失败等情况。可以添加错误处理机制，增强代码的鲁棒性。
+
+4. **注释**: 虽然代码中有一些注释，但可以进一步完善，特别是对于一些复杂逻辑或者关键函数的注释，以便他人理解和维护。
+
+5. **单一功能函数**: `joyCallback` 函数中既包含了处理Joystick消息的逻辑，又包含了生成CAN消息的逻辑，不利于代码的拓展和维护。可以考虑将生成CAN消息的逻辑抽取为单独的函数，提高代码的模块化和可复用性。
+
+6. **数据类型转换**: 当速度值超出`int16_t`的范围时，会截断导致错误的速度值。应该添加检查和处理这种情况的逻辑。
+
+通过对以上问题进行改进，可以使代码更加清晰、灵活和健壮。
+
+
+
+
+
+修改这段代码，将其分为两个节点，一个节点订阅joy话题并将其映射到cmd_vel话题上并发布，另一个节点订阅cmd_vel话题，并将其变成can报文，发布
+
+为了实现将原代码分割成两个节点，我们需要定义两个新的ROS节点：一个是用于从`joy`主题订阅消息并发布到`cmd_vel`主题的节点，另一个是用于从`cmd_vel`主题订阅消息并将其转换为CAN报文后发布的节点。
+
+对于节点2，我们需要订阅由第一个节点发布的`cmd_vel`主题（通常包含线性和角速度信息），然后根据接收到的速度值生成CAN帧并发布。在这个节点中，我们会将速度映射到CAN帧格式，并发送到指定的CAN通道。
+
+### 节点2: Cmd_Vel to CAN Node
+
+```cpp
+#include <ros/ros.h>
+#include <geometry_msgs/Twist.h>
+#include <can_msgs/Frame.h>
+#include <cmath>
+
+// Constants definitions
+const double WHEEL_DISTANCE = 0.5;
+const int16_t MAX_SPEED_VALUE = 32767;
+const uint8_t CAN_FRAME_DLC = 8;
+
+ros::Publisher can_pub;
+
+// Define a union for easy conversion between int16_t and two uint8_t
+union SpeedData {
+    int16_t speed;
+    uint8_t bytes[2];
+};
+
+void publishCanFrame(uint32_t id, uint8_t data[]) {
+    can_msgs::Frame frame;
+    frame.id = id;
+    frame.dlc = CAN_FRAME_DLC;
+    for (int i = 0; i < CAN_FRAME_DLC; ++i) {
+        frame.data[i] = data[i];
+    }
+    can_pub.publish(frame);
+}
+
+void cmdVelCallback(const geometry_msgs::Twist::ConstPtr& msg) {
+    double v = msg->linear.x;
+    double omega = msg->angular.z;
+    double v_l = v - omega * WHEEL_DISTANCE / 2;
+    double v_r = v + omega * WHEEL_DISTANCE / 2;
+
+    SpeedData left_speed;
+    SpeedData right_speed;
+
+    left_speed.speed = static_cast<int16_t>(v_l * MAX_SPEED_VALUE);
+    right_speed.speed = static_cast<int16_t>(v_r * MAX_SPEED_VALUE);
+
+    uint8_t data_l[] = {0x2B, 0x01, 0x20, 0x00, left_speed.bytes[0], left_speed.bytes[1], 0x00, 0x00};
+    uint8_t data_r[] = {0x2B, 0x01, 0x20, 0x00, right_speed.bytes[0], right_speed.bytes[1], 0x00, 0x00};
+
+    publishCanFrame(0x601, data_l); // Left wheel
+    publishCanFrame(0x602, data_r); // Right wheel
+}
+
+int main(int argc, char **argv) {
+    ros::init(argc, argv, "cmd_vel_to_can_node");
+    ros::NodeHandle nh;
+
+    // Advertise the CAN message publisher
+    can_pub = nh.advertise <can_msgs::Frame>("sent_messages", 100);
+    // Subscribe to the cmd_vel topic
+    ros::Subscriber cmd_vel_sub = nh.subscribe("cmd_vel", 10, cmdVelCallback);
+    ros::spin();
+	return 0;
+}
+```
+
+### 节点1: Joy to Cmd_Vel Node
+
+该节点负责从游戏手柄（joy）接收输入，并根据输入计算线性和角速度，然后将这些速度信息发布到`cmd_vel`主题。
+
+```cpp
+#include <ros/ros.h>
+#include <sensor_msgs/Joy.h>
+#include <geometry_msgs/Twist.h>
+
+// Constants definitions
+const double MAX_LINEAR_SPEED = 1.0;
+const double MIN_SPEED_THRESHOLD = 0.1;
+const double WHEEL_DISTANCE = 0.5;
+
+void joyCallback(const sensor_msgs::Joy::ConstPtr &msg, ros::Publisher *pub) {
+    ROS_INFO("Linear Vel: %f, Angular Vel: %f", msg->axes[1], msg->axes[3]);
+
+    double linear_vel = msg->axes[1];
+    double angular_vel = msg->axes[3];
+    geometry_msgs::Twist cmd_vel;
+
+    if (fabs(linear_vel) > MIN_SPEED_THRESHOLD) {
+        cmd_vel.linear.x = linear_vel * MAX_LINEAR_SPEED;
+        cmd_vel.angular.z = angular_vel;
+    } else if (fabs(angular_vel) > MIN_SPEED_THRESHOLD) {
+        cmd_vel.linear.x = 0;
+        cmd_vel.angular.z = angular_vel * WHEEL_DISTANCE;
+    } else {
+        cmd_vel.linear.x = linear_vel * MAX_LINEAR_SPEED;
+        cmd_vel.angular.z = angular_vel;
+    }
+
+    pub->publish(cmd_vel);
+}
+
+int main(int argc, char **argv) {
+    ros::init(argc, argv, "joy_to_cmd_vel_node");
+    ros::NodeHandle nh;
+
+    // Advertise the cmd_vel publisher
+    ros::Publisher cmd_vel_pub = nh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+
+    // Subscribe to the joy topic
+    ros::Subscriber joy_sub = nh.subscribe("joy", 10, [&cmd_vel_pub](const sensor_msgs::Joy::ConstPtr& msg) {
+joyCallback(msg, &cmd_vel_pub);
+});
+    ros::spin();
+	return 0;
+}
+
+
+```
