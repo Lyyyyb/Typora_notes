@@ -300,3 +300,51 @@ lsmod | grep pcan
 - 之后键入pcaninfo，检查系统中是否存在 PCAN 驱动，并显示有关 PCAN 驱动版本、PCAN-Basic 版本以及已连接 PCAN 设备的信息。正常输出如下
 
 ![image-20240506154322345](/home/lyb/github/Typora_notes/image-20240506154322345.png)
+
+### pcaniew的安装
+
+- 下载软件源列表
+
+```bash
+wget -q http://www.peak-system.com/debian/dists/`lsb_release -cs`/peak-system.list -O- | sudo tee /etc/apt/sources.list.d/peak-system.list
+```
+
+- 下载软件源公钥
+
+```bash
+wget -q http://www.peak-system.com/debian/dists/wheezy/peak-system.list -O- | sudo tee /etc/apt/sources.list.d/peak-system.list
+```
+
+- 添加软件源公钥
+
+```bash
+wget -q http://www.peak-system.com/debian/peak-system-public-key.asc -O- | sudo apt-key add -
+```
+
+- 更新软件包列表
+
+```bash
+sudo apt-get update
+```
+
+- 安装pcanview-ncurses 应用程序
+
+```bash
+sudo apt-get install pcanview-ncurses
+```
+
+- 查看是否安装成功
+
+```bash
+ls /usr/bin/pcanview
+```
+
+- 运行
+
+```bash
+pcanview
+```
+
+![image-20240506161530362](/home/lyb/github/Typora_notes/image-20240506161530362.png)
+
+![image-20240506161650835](/home/lyb/github/Typora_notes/image-20240506161650835.png)
