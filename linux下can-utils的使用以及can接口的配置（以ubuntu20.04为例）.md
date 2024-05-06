@@ -97,6 +97,7 @@ sudo modprobe vcan
 ```
 
 ### 2. 创建vCAN接口
+
 一旦vcan模块加载成功，你就可以使用 `ip` 命令创建虚拟CAN接口。通常，你会创建多个vCAN接口，以便模拟多个CAN总线。
 
 ```bash
