@@ -176,9 +176,9 @@ PCAN 产品系列包括各种硬件和软件工具，用于支持 CAN 总线的�
 
    
 
-   - 固件安装更新完成，取下镊子，不再短接boot0，重新插拔设备，打开终端键入ifconfig -a,识别到can0，则固件安装成功。
+   - 固件安装更新完成，取下镊子，不再短接boot0，重新插拔设备，打开终端（驱动安装完成后）键入pcaninfo识别到设备，则固件安装成功。
 
-   
+   ![image-20240506152223171](/home/lyb/github/Typora_notes/image-20240506152223171.png)
 
 #### 使用linux下的dfu-util安装更新固件candlelight
 
@@ -238,9 +238,7 @@ sudo dfu-util -d 0483:df11 -c 1 -i 0 -a 0 -s 0x08000000 -D pcan_canable_hw.bin
 
 ![image-20240506152343221](/home/lyb/github/Typora_notes/image-20240506152343221.png)
 
-- 固件安装更新完成，取下镊子，不再短接boot0，重新插拔设备，打开终端键入ifconfig -a,识别到can0，则固件安装成功。
-
-
+- 固件安装更新完成，取下镊子，不再短接boot0，重新插拔设备，打开终端（驱动安装完成后）键入pcaninfo识别到设备，则固件安装成功。
 
 ![image-20240506152223171](/home/lyb/github/Typora_notes/image-20240506152223171.png)
 
