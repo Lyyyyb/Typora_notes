@@ -152,9 +152,9 @@ sudo ip link set can0 down
 
 - **修改波特率**：
 ```bash
-sudo ip link set can0 type can bitrate 250000
+sudo ip link set can0 type can bitrate 500000
 ```
-这个命令将 `can0` 的波特率修改为250 Kbps。
+这个命令将 `can0` 的波特率修改为500 Kbps。
 
 - **开启环回模式**：
 ```bash
