@@ -35,9 +35,8 @@ sudo apt-get install ros-noetic-socketcan-bridge
 
 ### 组成
 
-- `socketcan_bridge` 包提供了三个主要的节点，以支持不同的通信需求：
-
-  - **socketcan_bridge_node**：这是一个集成节点，能同时处理从CAN接收的数据和发送到CAN的数据。使用这个节点可以防止发送的每个消息被回显到接收主题，即避免了发送和接收的数据混淆。
+- `socketcan_bridge` 包提供了三个主要的节点，以支持不同的通信需求
+- **socketcan_bridge_node**：这是一个集成节点，能同时处理从CAN接收的数据和发送到CAN的数据。使用这个节点可以防止发送的每个消息被回显到接收主题，即避免了发送和接收的数据混淆。
 
 
   - **socketcan_to_topic_node**：这个节点专门负责将从CAN接收的数据转换成ROS topics。它只处理接收操作。
@@ -91,6 +90,10 @@ sudo apt-get install ros-noetic-socketcan-bridge
 这个配置允许用户自定义CAN设备的名称和与节点交互的ROS话题名称，使得`socketcan_bridge_node`能够灵活地适应不同的使用场景和系统架构。
 
 ### 系统架构及数据流
+
+![image-20240507152856200](/home/lyb/github/Typora_notes/image-20240507152856200.png)
+
+![image-20240507152736489](/home/lyb/github/Typora_notes/image-20240507152736489.png)
 
 #### 主要组件
 
