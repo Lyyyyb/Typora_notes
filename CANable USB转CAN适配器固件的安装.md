@@ -180,7 +180,7 @@ PCAN 产品系列包括各种硬件和软件工具，用于支持 CAN 总线的�
 
    ![image-20240506152223171](/home/lyb/github/Typora_notes/image-20240506152223171.png)
 
-#### 使用linux下的dfu-util安装更新固件candlelight
+#### 使用linux下的dfu-util安装更新固件pcan
 
 在Linux系统下更新和安装固件可以通过以下步骤完成：
 
@@ -209,7 +209,7 @@ tar xvf pcan_cantact.tar.bz2
 - 进入pcan_cantact目录
 
 ```bash
-cd candleLight_fw
+cd pcan/pcan_cantact/build-canable
 ```
 
 - 编译
