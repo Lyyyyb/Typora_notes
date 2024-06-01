@@ -1,4 +1,4 @@
-# ubuntu安装指定版本的python解释器（ubuntu20.04）
+# ubuntu安装指定版本的python解释器（ubuntu20.
 
 ## 下载python解释器源码包
 
@@ -43,12 +43,6 @@ cd Python-3.10.14/
 sudo ./configure
 ```
 
-- 配置软件编译环境，并启用编译优化选项，以提高最终生成的可执行文件的性能，在终端输入
-
-```bash
-sudo ./configure --enable-optimizations
-```
-
 - 调用 `make` 工具，根据 `Makefile` 中的指令编译软件。
 
 ```bash
@@ -69,12 +63,6 @@ sudo make install
 
 ```bash
 sudo ./configure --prefix=/usr/local/python3.10.14
-```
-
-- 配置软件编译环境，并启用编译优化选项，以提高最终生成的可执行文件的性能，在终端输入
-
-```bash
-sudo ./configure --enable-optimizations
 ```
 
 - 调用 `make` 工具，根据 `Makefile` 中的指令编译软件。
@@ -123,6 +111,67 @@ sudo ln -s /usr/local/bin/python3.10 /usr/bin/python3
 
 ```bash
 sudo ln -s /usr/local/python3.10.14/bin/python3.10 /usr/bin/python
-sudo ln -s /usr/local/python3.10.14/bin/python3.10 /usr/bin/python3
+sudo ln -s /usr/local/python3.10.14/bin/python3.10 /usr/bin/python3.10
 ```
 
+#### 出现的问题
+
+- 经过测试如果执行一下命令
+
+```bash
+sudo ln -s /usr/local/python3.10.14/bin/python3.10 /usr/bin/python3.10
+```
+
+- 将导致终端无法打开，还没搞清楚原因，但是可以通过下面这段指令解决，
+
+```bash
+sudo rm /usr/bin/python3
+sudo ln -s /usr/bin/python3.8 /usr/bin/python3
+```
+
+- 安装完成后，在终端输入python，显示如下，安装完成
+
+![image-20240601221613318](/home/lyb/github/Typora_notes/image-20240601221613318.png)
+
+- 在终端输入如下指令，查看可执行文件的路径
+
+```bash
+which python
+```
+
+- 在终端输入如下指令，查看软链接指向是否正确
+
+```
+ls -l /usr/bin/python
+```
+
+![image-20240601221838898](/home/lyb/github/Typora_notes/image-20240601221838898.png)
+
+- 显示如上图，软链接指向正确
+
+
+
+
+
+### 1. `which python3`
+
+命令`which`是一个在系统的PATH环境变量指定的目录中搜索给定程序名的可执行文件的工具。如果找到了这个可执行文件，它会输出该文件的完整路径。
+
+- **命令格式**：`which [程序名]`
+- **作用**：
+  - 确定一个程序的可执行文件的位置。
+  - 验证是否安装了某个程序，以及它的安装位置。
+- **示例**：`which python3`
+  - 这个命令查找`python3`这一命令的位置。如果在PATH指定的目录中找到了`python3`的可执行文件，它会输出这个文件的完整路径。这可以帮助你确定系统中使用的默认Python版本的安装位置。
+
+### 2. `ls -l /usr/local/bin/python3`
+
+`ls`是一个列出目录内容的命令，`-l`参数表示以“长列表格式”显示信息，它提供了文件的详细信息，如权限、链接数、所有者、组、大小、时间戳和名称。
+
+- **命令格式**：`ls -l [文件或目录路径]`
+- **作用**：
+  - 查看指定文件或目录的详细信息。
+  - 对于文件，显示包括文件类型、权限、硬链接数、所有者、组、文件大小、最后修改日期等信息。
+  - 对于链接，显示链接本身的信息及其指向的目标。
+- **示例**：`ls -l /usr/local/bin/python3`
+  - 这个命令显示`/usr/local/bin/python3`的详细信息。如果`python3`是一个软链接，这个命令还会显示它指向的目标路径。这有助于了解`/usr/local/bin`中的`python3`是实体文件还是指向其他位置的链接。
