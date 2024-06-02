@@ -49,3 +49,47 @@ sudo ./pycharm.sh
 ![image-20240601143029255](/home/lyb/github/Typora_notes/image-20240601143029255.png)
 
 - 快捷方式创建成功
+
+
+
+## 创建工程
+
+- 打开pycharm，点击New Project
+
+![image-20240602115141590](/home/lyb/github/Typora_notes/image-20240602115141590.png)
+
+- 选择自己需要的python解释器版本，我这里选择python3.10
+
+![image-20240602115405287](/home/lyb/github/Typora_notes/image-20240602115405287.png)
+
+- 工程创建完成
+
+![image-20240602115957425](/home/lyb/github/Typora_notes/image-20240602115957425.png)
+
+## 安装汉化包
+
+- 点击右上角齿轮，选择Plugins（插件）
+
+![image-20240602120143793](/home/lyb/github/Typora_notes/image-20240602120143793.png)
+
+- 在搜索框中输入chinese，点击Install
+
+![image-20240602120230329](/home/lyb/github/Typora_notes/image-20240602120230329.png)
+
+- 下载完成后重启IDE即可
+
+![image-20240602120251888](/home/lyb/github/Typora_notes/image-20240602120251888.png)
+
+- 汉化成功
+
+![image-20240602120427781](/home/lyb/github/Typora_notes/image-20240602120427781.png)
+
+## 解释器版本选择及切换
+
+- 直接点击右下角的python解释器版本，即可选择
+
+![image-20240602121049658](/home/lyb/github/Typora_notes/image-20240602121049658.png)
+
+- 如果想要添加新的本地python解释器，则点击添加新的解释器
+
+![image-20240602121218703](/home/lyb/github/Typora_notes/image-20240602121218703.png)
