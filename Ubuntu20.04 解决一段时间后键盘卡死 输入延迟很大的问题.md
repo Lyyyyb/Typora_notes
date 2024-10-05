@@ -53,19 +53,19 @@
    在打开的编辑器里，输入以下内容：
    ```ini
    [Desktop Entry]
-   Version=1.0
-   Type=Application
+   Encoding=UTF-8
    Name=Restart IBus
+   Exec=terminator -e /home/lyb/scripts/restart_ibus.sh
    Icon=preferences-desktop-keyboard-shortcuts
-   Exec=/home/your_username/scripts/restart_ibus.sh
    Terminal=false
-   Comment=Restart IBus input method
-   Categories=Utility;
+   Type=Application
+   StartupNotify=true
    ```
    请确保替换 `your_username` 为您的实际用户名。保存并退出编辑器（在 `nano` 中按 `Ctrl+O`，然后 `Ctrl+X`）。
-
+   
 4. **给快捷方式文件设置执行权限**：
    设置桌面快捷方式的执行权限：
+   
    ```bash
    chmod +x ~/Desktop/Restart_IBus.desktop
    ```
@@ -76,3 +76,4 @@
 - 如果快捷方式不起作用，请确认脚本路径和文件权限是否正确设置。
 
 这些详细步骤应确保您能够通过一个双击的桌面快捷方式来控制和重启 IBus 输入法，为在输入设备失灵时提供快速的解决方案。
+
