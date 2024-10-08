@@ -13,11 +13,12 @@
 
 #### 步骤1: 正确设置镜像源
 - **添加PyTorch专用镜像源**：
+  
   ```bash
   conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
   ```
   这个源专门为PyTorch及其依赖库提供服务，包括支持不同CUDA版本的PyTorch安装包。
-
+  
 - **设置显示频道URLs**：
   ```bash
   conda config --set show_channel_urls yes
@@ -77,6 +78,7 @@ show_channel_urls: true
   ```
 
 #### 步骤4: 验证安装
+
 - 检查已安装的PyTorch版本：
   ```bash
   conda list pytorch
