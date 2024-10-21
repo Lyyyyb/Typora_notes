@@ -118,9 +118,10 @@ mkdir build && cd build
 
 ```bash
 cmake -D CMAKE_BUILD_TYPE=Release \
-      -D CMAKE_INSTALL_PREFIX=/usr/local/opencv-3.2 \
-      -D OPENCV_EXTRA_MODULES_PATH=~/opencv_builds/opencv_contrib-3.2/modules \
-      -D BUILD_EXAMPLES=ON ..
+      -D CMAKE_INSTALL_PREFIX=/usr/local/opencv-3.2.0 \
+      -D OPENCV_EXTRA_MODULES_PATH=~/opencv_builds/opencv_contrib-3.2.0/modules \
+      -D BUILD_EXAMPLES=ON \
+      -D ENABLE_PRECOMPILED_HEADERS=OFF ..
 ```
 
 **参数说明：**
@@ -150,8 +151,9 @@ mkdir build && cd build
 
 ```bash
 cmake -D CMAKE_BUILD_TYPE=Release \
-      -D CMAKE_INSTALL_PREFIX=/usr/local/opencv-4.4 \
-      -D OPENCV_EXTRA_MODULES_PATH=~/opencv_builds/opencv_contrib-4.4/modules \
+      -D CMAKE_INSTALL_PREFIX=/usr/local/opencv-4.4.0 \
+      -D OPENCV_EXTRA_MODULES_PATH=~/opencv_builds/opencv_contrib-4.4.0/modules \
+      -D OPENCV_GENERATE_PKGCONFIG=YES \
       -D BUILD_EXAMPLES=ON ..
 ```
 
