@@ -44,7 +44,7 @@ bool pyopencv_to(PyObject* obj, String& value, const char* name)
     (void)name;
     if(!obj || obj == Py_None)
         return true;
-    char* str = (char *)yString_AsString(obj);
+    char* str = (char *)PyString_AsString(obj);
     if(!str)
         return false;
     value = String(str);
