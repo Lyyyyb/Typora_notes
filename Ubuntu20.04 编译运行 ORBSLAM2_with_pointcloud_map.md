@@ -1,5 +1,7 @@
 # Ubuntu20.04 编译运行 ORBSLAM2_with_pointcloud_map
 
+https://blog.csdn.net/u013454780/article/details/132965625
+
 ## 获取源码
 
 ```bash

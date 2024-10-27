@@ -186,3 +186,20 @@ Depth Threshold (Close/Far Points): 3.86618
 ```
 
 https://blog.csdn.net/u013454780/article/details/132965625
+
+
+
+
+
+![image-20241027213128994](/home/lyb/github/Typora_notes/image-20241027213128994.png)
+
+
+
+```bash
+/home/lyb/pointcloudmap_ws/src/ORB_SLAM2_modified/Examples/ROS/ORB_SLAM2/../../../include/pointcloudmapping.h:25:10: fatal error: pcl/common/transforms.h: 没有那个文件或目录
+   25 | #include <pcl/common/transforms.h>
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+
+```
+
