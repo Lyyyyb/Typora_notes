@@ -478,7 +478,11 @@ rosrun ORB_SLAM2 RGBD Vocabulary/ORBvoc.txt Examples/ROS/ORB_SLAM2/Asus.yaml
 
 #### 程序尝试写入一个空的点云数据到 PCD 文件，导致抛出了 `pcl::IOException` 异常
 
+- 深度相机深度值的单位 mm
+
 https://blog.csdn.net/m0_62882335/article/details/140722866
+
+https://github.com/gaoxiang12/ORBSLAM2_with_pointcloud_map/issues/40
 
 https://blog.csdn.net/Xuesengxinyi/article/details/93469079
 
