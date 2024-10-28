@@ -203,3 +203,10 @@ compilation terminated.
 
 ```
 
+
+
+
+
+
+
+# what(): : [pcl::PCDWriter::writeBinary] Input point cloud has no data!

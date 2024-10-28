@@ -1,4 +1,4 @@
-# Ubuntu20.04 编译运行 ORBSLAM2_with_pointcloud_map
+# zUbuntu20.04 编译运行 ORBSLAM2_with_pointcloud_map(以RGBD Orbbec Astra+为例)
 
 https://blog.csdn.net/u013454780/article/details/132965625
 
@@ -341,7 +341,7 @@ CMake Error at CMakeLists.txt:33 (find_package):
   - Stereo
     - stereo_kitti.cc
 
-## 运行ORB_SLAM2
+## 运行ORB_SLAM2 RGBD
 
 ```bash
 ./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt Examples/RGB-D/TUM1.yaml ~/rgbd_dataset_freiburg1_xyz Examples/RGB-D/associations/fr1_xyz.txt
@@ -369,6 +369,7 @@ Depth Threshold (Close/Far Points): 3.86618
 ##### 解决方法
 
 - 删除所有CMakeLists.txt文件里的`-march=native`
+
 - 如下
 
 - ```cmake
@@ -391,4 +392,8 @@ Depth Threshold (Close/Far Points): 3.86618
 
 - 之后全部重新用CMake构建，Make编译一遍即可，再次运行即可运行成功。
 
-  
+
+
+
+
+![image-20241028125738390](/home/lyb/github/Typora_notes/image-20241028125738390.png)
