@@ -317,6 +317,96 @@ Depth Threshold (Close/Far Points): 3.86618
 
 - 修改pointcloudmapping.cc中的void PointCloudMapping::viewer() 函数
 
+- 从
+
+```C++
+void PointCloudMapping::viewer()
+{
+    pcl::visualization::CloudViewer viewer("viewer");
+    while(1)
+    {
+        {
+            unique_lock<mutex> lck_shutdown( shutDownMutex );
+            if (shutDownFlag)
+            {
+                break;
+            }
+        }
+        {
+            unique_lock<mutex> lck_keyframeUpdated( keyFrameUpdateMutex );
+            keyFrameUpdated.wait( lck_keyframeUpdated );
+        }
+
+        // keyframe is updated
+        size_t N=0;
+        {
+            unique_lock<mutex> lck( keyframeMutex );
+            N = keyframes.size();
+        }
+
+        for ( size_t i=lastKeyframeSize; i<N ; i++ )
+        {
+            PointCloud::Ptr p = generatePointCloud( keyframes[i], colorImgs[i], depthImgs[i] );
+            *globalMap += *p;
+        }
+        PointCloud::Ptr tmp(new PointCloud());
+        voxel.setInputCloud( globalMap );
+        voxel.filter( *tmp );
+        globalMap->swap( *tmp );
+        viewer.showCloud( globalMap );
+        cout << "show global map, size=" << globalMap->points.size() << endl;
+        lastKeyframeSize = N;
+    }
+}
+```
+
+- 改为
+
+```C++
+void PointCloudMapping::viewer()
+{
+    pcl::visualization::CloudViewer viewer("viewer");
+    while(1)
+    {
+        {
+            unique_lock<mutex> lck_shutdown( shutDownMutex );
+            if (shutDownFlag)
+            {
+                break;
+            }
+        }
+        {
+            unique_lock<mutex> lck_keyframeUpdated( keyFrameUpdateMutex );
+            keyFrameUpdated.wait( lck_keyframeUpdated );
+        }
+
+        // keyframe is updated
+        size_t N=0;
+        {
+            unique_lock<mutex> lck( keyframeMutex );
+            N = keyframes.size();
+        }
+
+        for ( size_t i=lastKeyframeSize; i<N ; i++ )
+        {
+            PointCloud::Ptr p = generatePointCloud( keyframes[i], colorImgs[i], depthImgs[i] );
+            *globalMap += *p;
+        }
+        PointCloud::Ptr tmp(new PointCloud());
+        voxel.setInputCloud( globalMap );
+        voxel.filter( *tmp );
+        globalMap->swap( *tmp );
+        viewer.showCloud( globalMap );
+        cout << "show global map, size=" << globalMap->points.size() << endl;
+        string save_path = "./resultPointCloudFile.pcd";//NEW
+        pcl::io::savePCDFile(save_path, *globalMap);//NEW
+        cout << "save pcd files to :  " << save_path << endl;//NEW
+
+        lastKeyframeSize = N;
+    }
+}
+```
+
 - 修改完之后，再次编译运行，效果如下：
 
 ![image-20241028142746098](/home/lyb/github/Typora_notes/image-20241028142746098.png)
@@ -464,15 +554,48 @@ chmod +x build_ros.sh
 
 ## 运行ORB_SLAM2 ROS(以Orbbec Astra+为例)
 
+- 修改RGB-D节点订阅话题名称
+
+  - Astra+节点所发布的可用的话题（topics）
+
+    - `/camera/color/camera_info` : 彩色相机信息（CameraInfo）话题。
+
+    - `/camera/color/image_raw`: 彩色数据流图像话题。
+    - `/camera/depth/camera_info`: 深度相机信息（CameraInfo）话题。
+
+    - `/camera/depth/image_raw`: 深度数据流图像话题。
+
+    - `/camera/depth/points` : 点云话题，仅当 `enable_point_cloud` 为 `true` 时才可用`.
+
+    - `/camera/depth_registered/points`: 彩色点云话题，仅当 `enable_colored_point_cloud` 为 `true` 时才可用。
+
+    - `/camera/ir/camera_info`:  红外相机信息（CameraInfo）话题。
+
+    - `/camera/ir/image_raw`: 红外数据流图像话题。
+
+  - 由于RGB-D节点默认订阅话题 `/camera/rgb/image_raw` 和 `/camera/depth_registered/image_raw` ，所以需要修改为自己的相机所发布的话题，如下所示：
+
+  ```C++
+      message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, "/camera/color/image_raw", 1);//彩色数据流图像话题
+      message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, "/camera/depth/image_raw", 1);//深度数据流图像话题
+  ```
+
+
+- 运行Astra+节点
+
+```
+roslaunch orbbec_camera astra_adv.launch
+```
+
+- 运行RGB-D节点
+
 ```
 rosrun ORB_SLAM2 RGBD Vocabulary/ORBvoc.txt Examples/ROS/ORB_SLAM2/Asus.yaml
 ```
 
 - 运行成功，如下
 
-
-
-
+![image-20241028195117579](/home/lyb/github/Typora_notes/image-20241028195117579.png)
 
 ### 运行报错解决
 
@@ -512,6 +635,39 @@ terminate called after throwing an instance of 'pcl::IOException'
 
 - ```yaml
   DepthMapFactor: 1000.0
+  ```
+
+
+#### 点云图没有实时绘制，viewer界面只显示一个坐标系
+
+![image-20241028193234173](/home/lyb/github/Typora_notes/image-20241028193234173.png)
+
+##### 报错原因
+
+- 滤波模块有问题,直接把showCloud函数提前即可。
+
+##### 解决方法
+
+- 修改pointcloudmapping.cc中的void PointCloudMapping::viewer()
+
+- 从
+
+- ```C++
+  PointCloud::Ptr tmp(new PointCloud());
+  voxel.setInputCloud( globalMap );
+  voxel.filter( *tmp );
+  globalMap->swap( *tmp );
+  viewer.showCloud( globalMap );//before
+  ```
+
+- 改为 把showCloud函数提前
+
+- ```c++
+  viewer.showCloud( globalMap );//after
+  PointCloud::Ptr tmp(new PointCloud());
+  voxel.setInputCloud( globalMap );
+  voxel.filter( *tmp );
+  globalMap->swap( *tmp );
   ```
 
   
