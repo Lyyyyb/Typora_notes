@@ -55,9 +55,7 @@ odom：根据机器人左右轮速度推算出的航向信息（即/odom 坐标�
 - map->odom
 - map->odom->base_link
 - odom->base_link 通过视觉里程计估算离目的地10m，但是通过定位算法得到实际离目的地只有9m，然后这个定位算法就会输出一段map->odom的变换来纠正这段偏差(类似平行四边形)，从而得到map->odom->base_link的完整tf树
-
 - 为了获得map->odom->base_link->camera_link
-
 - ORBSLAM2 已知
   - odom->camera_link（Tracking得到）
   - base_link->camera_link （直接测量得到）
@@ -67,7 +65,12 @@ odom：根据机器人左右轮速度推算出的航向信息（即/odom 坐标�
   - odom->base_link
     - 可根据odom->camera_link 和 base_link->camera_link直接得到
 - 例子：
-  - odom->base_link 通过视觉里程计估算离目的地10m，但是通过定位算法得到实际离目的地只有9m，然后这个定位算法就会输出一段map->odom(实际先输出map->base_link 然后通过map->base_link和odom->base_link计算得到map->odom)的变换来纠正这段偏差(类似平行四边形)，从而得到map->odom->base_link->camera_link的完整tf树
+  - odom->base_link 通过视觉里程计估算离目的地10m，但是通过定位算法得到实际离目的地只有9m，然后这个定位算法就会输出一段map->odom(实际先输出map->base_link 然后通过map->base_link和odom->base_link计算得到map->odom)的变换来纠正这段偏差(类似平行四边形)，从而得到map->odom->base_link->camera_link的完整tf树、
+- orbslam2 中的map坐标系？？？？？
+
+  - 第一帧图像的坐标系
+  - 通常使用第一个关键帧（Keyframe）或第一对图像帧来设定地图的初始坐标系原点
+
 
 
 
