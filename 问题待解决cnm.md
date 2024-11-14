@@ -70,8 +70,11 @@ odom：根据机器人左右轮速度推算出的航向信息（即/odom 坐标�
 
   - 第一帧图像的坐标系
   - 通常使用第一个关键帧（Keyframe）或第一对图像帧来设定地图的初始坐标系原点
+- Octomap 的全局坐标系 map？？
+- 定位
 
-
+- map 由 octomap 建好地图后 map_server发布
+- 
 
 
 ![](/home/lyb/github/Typora_notes/image-20241113141027710.png)
