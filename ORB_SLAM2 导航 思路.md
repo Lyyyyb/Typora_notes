@@ -9,7 +9,9 @@
   - camera_link->base_link
 - 由odom->camera_link和camera_link->base_link可得
   - odom->base_link
-- 由定位节点(TODO)可得：
+- map->odom 重合？？
+- 回环检测 map->base_link
+- 由定位节点(TODO)可得： ORB_SLAM2 自身的定位功能？？？
   - map->base_link 进而
     - 由map->base_link和odom->base_link可得
       - map->odom
