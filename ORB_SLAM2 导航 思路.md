@@ -25,3 +25,14 @@
   - sensor topics
     - camera
 
+
+
+
+
+- octomap_server(/projected_map) -> map_server  二维栅格地图
+
+- **`move_base`**
+  - **功能**：`move_base` 是 ROS 中最常用的路径规划框架，它主要用于二维路径规划，但也可以扩展和定制以支持三维路径规划。
+  - 扩展
+    - **`move_base`** 默认使用2D栅格地图进行路径规划，但通过结合`octomap`和`3d_navigation`，可以使其支持三维环境中的路径规划。
+    - **集成**：`move_base` 可以与三维地图（例如Octomap）配合使用，结合合适的规划算法（如`sbpl_lattice_planner_3d`）来执行三维路径规划。
